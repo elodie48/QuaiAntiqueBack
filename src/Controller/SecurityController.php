@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use OpenApi\Attributes as OA;
 use App\Entity\User;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,6 +25,38 @@ final class SecurityController extends AbstractController
     }
 
     #[Route('/registration', name: 'registration', methods: 'POST')]
+    #[OA\Post(
+        path:"/api/registration",
+        summary:"New user registration",
+        requestBody: new OA\RequestBody(
+            required: true,
+            description:"User data to be registered",
+            content: new OA\JsonContent(
+                type:"object",
+                properties: [
+                    new OA\Property(property:"email", type:"string", example:"adresse@email.com"),
+                    new OA\Property(property:"password", type:"string", example:"Mot de passe"),
+                    new OA\Property(property:"firstName", type:"string", example:"Elodie"),
+                    new OA\Property(property:"lastName", type:"string", example:"Test"),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: "User successfully registered",
+                content: new OA\JsonContent(
+                    type:"object",
+                    properties: [
+                        new OA\Property(property:"user", type:"string", example:"adresse@email.com"),
+                        new OA\Property(property:"apiToken", type:"string", example:"12azerty3456uiopmlkjhgf789"),
+                        new OA\Property(property:"roles", type:"array", items: new OA\Items(type:"string", example: "ROLE_USER")),
+                    ]
+                )
+            )
+        ]
+    )]
+
     public function register(Request $request, UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
         $user = $this->serializer->deserialize($request->getContent(), User::class, 'json');
@@ -41,6 +74,36 @@ final class SecurityController extends AbstractController
     }
 
     #[Route('/login', name: 'login', methods: 'POST')]
+    #[OA\Post(
+        path:"/api/login",
+        summary:"Login a user",
+        requestBody: new OA\RequestBody(
+            required: true,
+            description:"User data for login",
+            content: new OA\JsonContent(
+                type:"object",
+                properties: [
+                    new OA\Property(property:"username", type:"string", example:"adresse@email.com"),
+                    new OA\Property(property:"password", type:"string", example:"Mot de passe"),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Successful connection",
+                content: new OA\JsonContent(
+                    type:"object",
+                    properties: [
+                        new OA\Property(property:"user", type:"string", example:"Nom d'utilisateur"),
+                        new OA\Property(property:"apiToken", type:"string", example:"31a0123212f4457fea31a0123212f4457fea"),
+                        new OA\Property(property:"roles", type:"array", items: new OA\Items(type:"string", example: "ROLE_USER")),
+                    ]
+                )
+            )
+        ]
+    )]
+
     public function login(#[CurrentUser] ?User $user): JsonResponse
     {
         if(null === $user) {
